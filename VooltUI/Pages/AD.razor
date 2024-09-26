@@ -1,0 +1,245 @@
+﻿@page "/adPage"
+@inject HttpClient Http
+
+<PageTitle>Ads</PageTitle>
+
+<h1>AD</h1>
+
+<button class="btn btn-primary" @onclick="ShowNewadModal">Add</button>
+
+@if (adObjectList == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>TotalLeads</th>
+                <th>Details</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (adObject item in adObjectList)
+            {
+                <tr>
+                    <td>@item.adId</td>
+                    <td>@item.adDescription</td>
+                    <td>@item.adStatus</td>
+                    <td>@item.adTotalLeads</td>
+                    <td>
+                        <a href="javascript:;" style="font-size: 1.0em;"
+                           @onclick="() => ShowEditadModal(item)">Details</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<Modal Show=showNewmadModal OnCancel=OnCloseNewaddModal>
+    <Title>New ad</Title>
+    <Body>
+        <EditForm EditContext="@editContext" OnValidSubmit="@SaveNewad">
+            <DataAnnotationsValidator />
+
+            <div class="form-group">
+                <label class="modal-label">Id</label>
+                <InputNumber @bind-Value="newadObject.adId" class="form-control modal-textbox" maxlength="120" readonly />
+                <ValidationMessage For="() => newadObject.adId" />
+            </div>
+
+            <div class="form-group">
+                <label class="modal-label">Description</label>
+                <InputText @bind-Value="newadObject.adDescription" class="form-control modal-textbox" maxlength="120" />
+                <ValidationMessage For="() => newadObject.adDescription" />
+            </div>
+
+            <div class="form-group">
+                <label class="modal-label">Creation Date</label>
+                <InputDate @bind-Value="newadObject.adCreationDate" class="form-control modal-textbox" maxlength="120" />
+                <ValidationMessage For="() => newadObject.adCreationDate" />
+            </div>
+
+            <div class="form-group">
+                <label class="modal-label">Status</label>
+                <InputSelect @bind-Value="@newadObject.adStatus" class="form-control modal-textbox">
+                    @foreach (var status in Enum.GetValues(typeof(adStatus)))
+                    {
+                        <option value="@status">@status</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="() => newadObject.adStatus" />
+            </div>
+
+            <div class="form-group">
+                <label class="modal-label">Balance</label>
+                <InputNumber @bind-Value="newadObject.adBalance" class="form-control modal-textbox" maxlength="120" />
+            </div>
+
+            <div class="form-group">
+                <label class="modal-label">External Id</label>
+                <InputText @bind-Value="newadObject.adExternalId" class="form-control modal-textbox" maxlength="120" />
+            </div>
+
+            <div class="form-group">
+                <label class="modal-label">Total Leads</label>
+                <InputNumber @bind-Value="newadObject.adTotalLeads" class="form-control modal-textbox" maxlength="120" />
+            </div>
+            
+            <div class="form-group">
+                <br />
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+            
+        </EditForm>
+        
+    </Body>
+</Modal>
+
+<Modal Show=showEditadModal OnCancel=OnCloseEditadModal>
+    <Title>Edit ad</Title>
+    <Body>
+        <EditForm EditContext="@editContext" OnValidSubmit="@SaveNewad">
+            <DataAnnotationsValidator />
+
+            <div class="form-group">
+                <label class="modal-label">Id</label>
+                <InputNumber @bind-Value="edtingadObject.adId" class="form-control modal-textbox" maxlength="120" readonly/>
+                <ValidationMessage For="() => edtingadObject.adId" />
+            </div>
+
+            <div class="form-group">
+                <label class="modal-label">Description</label>
+                <InputText @bind-Value="edtingadObject.adDescription" class="form-control modal-textbox" maxlength="120" />
+                <ValidationMessage For="() => edtingadObject.adDescription" />
+            </div>
+
+            <div class="form-group">
+                <label class="modal-label">Creation Date</label>
+                <InputDate @bind-Value="edtingadObject.adCreationDate" class="form-control modal-textbox" maxlength="120" />
+                <ValidationMessage For="() => edtingadObject.adCreationDate" />
+            </div>
+
+            <div class="form-group">
+                <label class="modal-label">Status</label>
+                <InputSelect @bind-Value="@edtingadObject.adStatus" class="form-control modal-textbox">
+                    @foreach (var status in Enum.GetValues(typeof(adStatus)))
+                    {
+                        <option value="@status">@status</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="() => edtingadObject.adStatus" />
+            </div>
+
+            <div class="form-group">
+                <label class="modal-label">Balance</label>
+                <InputNumber @bind-Value="edtingadObject.adBalance" class="form-control modal-textbox" maxlength="120" />
+            </div>
+
+            <div class="form-group">
+                <label class="modal-label">External Id</label>
+                <InputText @bind-Value="edtingadObject.adExternalId" class="form-control modal-textbox" maxlength="120" />
+            </div>
+
+            <div class="form-group">
+                <label class="modal-label">Total Leads</label>
+                <InputNumber @bind-Value="edtingadObject.adTotalLeads" class="form-control modal-textbox" maxlength="120" />
+            </div>
+
+            <div class="form-group">
+                <br />
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+
+        </EditForm>
+    </Body>
+</Modal>
+
+@code {
+    private List<adObject> adObjectList = new();
+    bool showNewmadModal = false;
+    bool showEditadModal = false;
+
+    string apiURL = "https://localhost:7114/adService"; //In a real world, this path should be in a config file or appSettings
+
+    adObject newadObject = new();
+    adObject edtingadObject = new();
+
+    private EditContext editContext;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetAdList();
+    }
+
+    private async Task GetAdList()
+    {
+        adObjectList = await Http.GetFromJsonAsync<List<adObject>>(apiURL);   
+    }
+    private void ShowNewadModal()
+    {
+        newadObject = new();
+        editContext = new(newadObject);
+        int maxId = 0;
+
+        if (adObjectList != null && adObjectList.Count() > 0)
+        {
+            maxId = adObjectList.Max(x => x.adId); 
+        }
+
+        newadObject.adId = maxId + 1;
+        newadObject.adCreationDate = DateTime.Now;
+
+        showNewmadModal = true;
+    }
+
+    private async Task SaveNewad()
+    {
+        await SendSavetoAPI(newadObject);
+        await GetAdList();
+
+        newadObject = new();
+        StateHasChanged();
+
+    }
+
+    private void OnCloseNewaddModal()
+    {
+        showNewmadModal = false;
+    }
+
+    private void ShowEditadModal(adObject item)
+    {
+        edtingadObject = item.Clone();
+        editContext = new(edtingadObject);
+        showEditadModal = true;
+    }
+
+    private async Task SaveEditad()
+    {
+        await SendSavetoAPI(edtingadObject);
+        await GetAdList();
+
+        edtingadObject = new();
+        StateHasChanged();
+    }
+
+    private void OnCloseEditadModal()
+    {
+        edtingadObject = new();
+        showEditadModal = false;
+    }
+
+    private async Task SendSavetoAPI(adObject item)
+    {
+        Http.DefaultRequestHeaders.Add("sec-fetch-mode", "no-cors");
+        await Http.PostAsJsonAsync<adObject>(apiURL, item);
+    }
+
+
+}

@@ -1,0 +1,29 @@
+﻿@if (Show)
+{
+    <div class="modal-container" style="z-index:2;">
+        <div class="modal-popup" style="width:300px; background-color:white; z-index:2;">
+            <div class="modal-close-button" title="Cancel" @onclick="OnCancel">
+                <span>
+                    X
+                </span>
+                
+            </div>
+            <div class="modal-title">
+                @Title
+            </div>
+            <div class="modal-body">
+                @Body
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Show { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public RenderFragment Title { get; set; }
+    [Parameter] public RenderFragment Body { get; set; }
+    
+    
+}
+
